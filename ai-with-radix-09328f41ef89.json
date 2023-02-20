@@ -1,0 +1,12 @@
+{
+  "type": "service_account",
+  "project_id": "ai-with-radix",
+  "private_key_id": "09328f41ef89e8376af13042ad311815308c046a",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDb8tPi65PD485c\n8Ct/YtdmZ0wOqQqjAgDUJu+clXP8qvBuP61orF9RI2B6gwJH6IYMkc3MuaGq7p1b\nmRYrWoNNj53BbIuuJZ3GjDQPDfkheJU/yj4M/9XixJIbubHBxzu5N6JmGnsALzKw\nLJf3Ylqu4B13y2EXH4GwshyagsL1EuNf0g7sTAj4Gf3dizStKy/nhgnPnr9hQ3cB\nRo3t42hwlwb3UlgJSKHxk66vCP61jj+wLFZ+W6UT8b+jnSjYNTUfbJVqqLP1hZCs\nrhgms7voRLPs9VTlBUDE72h86RUnm3TD1X7wQOVBEvpIgRoVAIU6Lb0XRZa9cHyd\n03mMzNcNAgMBAAECggEAE2aYJ4YxjsAXmg2KPK6Ggu8eH5XsDQRWd+AmVwi8xh76\n3bKqtFauAq1s62mGaDrbphyvSz1dhAMPqL54XOMbPVprZx4QtQ/22oZP6jsIjFoD\nSjDn58QiROIjZCQtSIMvIq+EWN7BljrTjQQl9Gl9x7qXhtNO8VfzW9deHAfoM+8o\nd2ApALktqKr8qagHo57Eax1CQCrlIMG1C9/Wk+db9Xy7Osyykp+OvKUueRHL9L8P\nT20Sa7GLC3fsG59q8UQTKQ/kx6i4EMtxeLhRupGNAoPyIgfjA/dbbt4PnXHXj8Ox\neHyrkA1wAlAap8+JUXZOe3x3ZA7RbamAS64eGhwd+QKBgQDwKNJisKXvHyPqxgOP\nkBrkycdJwj3ClgkRDIPM+1/UMl5QveV1hdzhIrZ+t2QCoQsXiiHXELQSH9g7FYEw\nGz6SZ14xq31p0VHyzDDxCp0ZwGg7lUp2DCNlg+BxP9Z5Jpuv+mlYuNg01D/eNtaP\nUw8OSEKhT5u8ShDMYqm/DkG3qQKBgQDqdLzDf7IV0wrwtZt+YTYRFggdOEupiuaI\nB5vt1JdbvgfKHjF+SyEHT82a3CoxTDBXbzdJpMTNduWI9Z/FjwzesmKmD6KETEdx\nzmK3ifJnpwQnZALResski/pL7BEA+AJQ1HFzQFI+vBFGpxjccPDKr5T1KZRJhKMP\nBqfwZq+yxQKBgQDFia5TQt2Z7FFMwQcYxP16BoaHot/N+D8I6PRYXMOb9LojS687\nlZnzDOxzGkGG8BQBjrr6/WBAMDVZk/ypJx+2qJOP43DK40O2pEH1YjeKgPq7V7bh\nlmZfD7RDMrElAZ65hw2zzob4HUVTcGPXjAgsRT+ZE7QTkhBzLQxWfFGN0QKBgCHF\nbus6GYzLOWgywJMTrZYIdmK/GSbyuwIdFnjLhoHQfY6/iqGGcNt8w0DrNaikMNJn\nUq9o7HAsECQKPVlXoaLyTwNcfSxRUHk0IUQOurvzcsW5wi4qYdiB0SvedRSOpMa/\n0xemzDH9JP/oUcxu+EA5ylsGAjYUxOgFLWuTXvuBAoGAbHbKjQhhARBXR9Gu3muI\nZo+FSbCp7a6aWPiHA3McVtmYy+qpr/DuAMx6YFPq45/s7pQ0xhnDhplnglCIWyHz\nOW/Dp1DmqdwPD6dNF+/1q3RAfo3IsB9s5iNsA3FqynXXPQB1U+XCDGJb0YYJMJtJ\nTiXvlBnZvOahoZq2yp5EXrA=\n-----END PRIVATE KEY-----\n",
+  "client_email": "radix-api-speech@ai-with-radix.iam.gserviceaccount.com",
+  "client_id": "114097572314426756411",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/radix-api-speech%40ai-with-radix.iam.gserviceaccount.com"
+}
