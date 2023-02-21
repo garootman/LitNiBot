@@ -28,7 +28,8 @@ from oauth2client.client import GoogleCredentials
 
 
 from bot_config import *
-MAX_RETRYS = 3
+MAX_RETRYS = 30
+OPENAI_RETRY_TIMEOUT = 10
 
 
 # In[3]:
@@ -114,10 +115,15 @@ def extract_audio(in_video_path, out_audio_path):
 
 
 def merge_media(vide_file, audio_file, res_file):
+    if (audio_file):
+        aud_cmd = "-i", audio_file
+    else:
+        aud_cmd = ""
+    
     command = [
         "ffmpeg",
         "-i", vide_file,
-        "-i", audio_file,
+        aud_cmd,
         "-c:v", "copy",
         "-c:a", "aac",
         "-strict", "experimental",
@@ -159,6 +165,7 @@ async def rewrite_text (rules, text):
             break
         except Exception as e:
             answer = f"Got error from OpenAI:\n\n{str(e)}"
+            await asyncio.sleep(OPENAI_RETRY_TIMEOUT)
             print(answer)
     return answer, token_used
 
@@ -319,7 +326,7 @@ def process_video(vidfile, vid_rules):
         wmfile = make_work_wm (vid_rules['watermark'], h, w, scale=0.2, of=10, loc=wmloc)
         vidfile = add_wm_to_vid(vidfile, wmfile)
         
-    if (vid_rules['noise']):
+    if (vid_rules['noise'] and aud_file):
         aud_file = make_some_noise4 (aud_file, vid_rules['noise'])
     outpath = os.path.join(*vidfile.split(sep)[:-1], 'final_'+vidfile.split(sep)[-1])    
     video = merge_media(vidfile, aud_file, outpath)
@@ -620,6 +627,8 @@ processing_queue = []
 
 
 # In[28]:
+
+
 openai.api_key = openai_key
 client = TelegramClient(PHONE, API_ID, API_HASH)
 translate_service = get_tanslate_service()
@@ -627,6 +636,8 @@ translate_service = get_tanslate_service()
 workers = [main(), processor()]
 async def runme (workers):
     await asyncio.gather(*workers)
-    
+
 if __name__ == '__main__':
     asyncio.run(runme(workers))
+# In[ ]:
+
