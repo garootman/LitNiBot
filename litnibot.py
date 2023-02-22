@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[1]:
+# In[25]:
 
 
 from telethon import TelegramClient, events
@@ -24,7 +24,7 @@ import httplib2
 from oauth2client.client import GoogleCredentials
 
 
-# In[2]:
+# In[26]:
 
 
 from bot_config import *
@@ -32,13 +32,13 @@ MAX_RETRYS = 30
 OPENAI_RETRY_TIMEOUT = 10
 
 
-# In[3]:
+# In[27]:
 
 
 print ("libs imported!")
 
 
-# In[4]:
+# In[28]:
 
 
 SEC_PER_VID_MB = 10
@@ -46,7 +46,7 @@ NOISE_FILE = 'pink.wav'
 WORKDIR = 'workdir'
 
 
-# In[5]:
+# In[29]:
 
 
 def non_english_symbols_regex(string: str):
@@ -99,22 +99,25 @@ def translate_to_lang(texts, target_lang):
 # In[9]:
 
 
-def extract_audio(in_video_path, out_audio_path):
+def extract_audio(in_video_path):
     try:
+        sep = '\\' if len(in_video_path.split('\\')) > len(in_video_path.split('/')) else '/'
+        aud_path = os.path.join(*in_video_path.split(sep)[:-1], 'audio_'+'.'.join(in_video_path.split(sep)[-1].split('.')[:-1])+'.mp3')
         aud = AudioSegment.from_file(in_video_path, "mp4")
-        aud.export(out_audio_path, format="mp3")
-        print (f"Extracted audio to: {out_audio_path}")
-        return out_audio_path
+        aud.export(aud_path, format="mp3")
+        print (f"Extracted audio to: {aud_path}")
+        return aud_path
     except Exception as e:
         aud_file = None
         print (f"Could NOT extract audio: {str(e)}")
         return None
 
 
-# In[10]:
+# In[38]:
 
 
 def merge_media(vide_file, audio_file, res_file):
+    print (f"Merging video: {vide_file} + audio: {audio_file}")
     if (audio_file):
         aud_cmd = "-i", audio_file
     else:
@@ -123,7 +126,7 @@ def merge_media(vide_file, audio_file, res_file):
     command = [
         "ffmpeg",
         "-i", vide_file,
-        aud_cmd,
+        *aud_cmd,
         "-c:v", "copy",
         "-c:a", "aac",
         "-strict", "experimental",
@@ -313,9 +316,7 @@ def process_video(vidfile, vid_rules):
     w, h, fps = get_vid_params(vidfile)
     sep = '\\' if len(vidfile.split('\\')) > len(vidfile.split('/')) else '/'
     out_file = os.path.join(*vidfile.split(sep)[:-1], 'out_'+vidfile.split(sep)[-1])
-
-    aud_path = os.path.join(*vidfile.split(sep)[:-1], 'audio_'+'.'.join(vidfile.split(sep)[-1].split('.')[:-1])+'.mp3')
-    aud_file = extract_audio(vidfile, aud_path)
+    aud_file = extract_audio(vidfile)
     if vid_rules.get('angle'):
         vidfile = rotate_video(vidfile, vid_rules['angle'])
     if (vid_rules['watermark']):

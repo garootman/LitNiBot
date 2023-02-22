@@ -2,7 +2,7 @@
 __pycache__/
 *.py[cod]
 *$py.class
-
+workdir/
 # C extensions
 *.so
 
@@ -153,3 +153,4 @@ cython_debug/
 *.session
 79959059938_dialogs.txt
 Compressed file.zip
+workdir/-1001716081508_353/invideo_993.mp4

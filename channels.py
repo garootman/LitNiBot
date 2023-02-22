@@ -1,8 +1,8 @@
 channels = [
     {"from": -1001716081508, "to": 5566311336, 
      "rules": {"text": {"prompt": "Rewrite this in english:", "translate": "en"}, 
-     "image": {"crop": 0.5, "rotate": 0.5, "watermark": "watermark2.png", "wm_loc": "c"}, 
-     "video": {"watermark": "watermark2.png", "angle": 1.5, "noise": -5, "wm_loc": "br"}}
+     "image": {"crop": 0.5, "rotate": 0.5, "watermark": "watermark.png", "wm_loc": "c"}, 
+     "video": {"watermark": "watermark.png", "angle": 1.5, "noise": -5, "wm_loc": "br"}}
     }, 
     
     {"from": 62408647, "to": 2041631011, 
