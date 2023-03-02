@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[25]:
+# In[1]:
 
 
-from telethon import TelegramClient, events
+from telethon import TelegramClient, events, errors
 from telethon.tl.types import UpdateNewMessage
 import json
 import re
@@ -22,9 +22,12 @@ from pydub import AudioSegment
 from googleapiclient import discovery
 import httplib2
 from oauth2client.client import GoogleCredentials
+import shutil
+
+from datetime import datetime, timedelta
 
 
-# In[26]:
+# In[2]:
 
 
 from bot_config import *
@@ -32,21 +35,65 @@ MAX_RETRYS = 30
 OPENAI_RETRY_TIMEOUT = 10
 
 
-# In[27]:
+# In[3]:
 
 
 print ("libs imported!")
 
 
-# In[28]:
+# In[4]:
 
 
 SEC_PER_VID_MB = 10
 NOISE_FILE = 'pink.wav'
 WORKDIR = 'workdir'
+try:
+    shutil.rmtree(WORKDIR, ignore_errors=False)
+except:
+    pass
 
 
-# In[29]:
+# In[ ]:
+
+
+
+
+
+# In[5]:
+
+
+async def send_msg(chat, text="", files=None, reply=None, comment=None):
+    retrys = 0
+    chunklen = 1024 if files else 4096
+    texts_to_send = ['']
+    for l in text.splitlines():
+        if len (texts_to_send[-1] +'\n'+ l) <=chunklen:
+            texts_to_send[-1]+='\n'+l.strip()
+        else:
+            if len(l)<=chunklen:
+                texts_to_send.append(l.strip())
+            else:
+                for w in l.split():
+                    if len (texts_to_send[-1] +' '+ w) <=chunklen:
+                        texts_to_send[-1]+=' '+w
+                    else:
+                        texts_to_send.append(w)
+    texts_to_send = [i for i in texts_to_send if len(i)>0]
+
+    for txt in texts_to_send:
+        while retrys < MAX_RETRYS:
+            retrys+=1
+            try:
+                sent = await client.send_message (chat, file = (files if txt==texts_to_send[0] else None), message = txt)
+            except Exception as e:
+                print (f"Error sending message to {str(chat)}: {str(e)}")
+                await asyncio.sleep(5)
+            break
+            
+    return sent
+
+
+# In[6]:
 
 
 def non_english_symbols_regex(string: str):
@@ -54,7 +101,7 @@ def non_english_symbols_regex(string: str):
     return pattern.findall(string)
 
 
-# In[6]:
+# In[7]:
 
 
 def estimate_token_count(prompt):
@@ -69,7 +116,7 @@ def estimate_token_count(prompt):
     return int(estimated_token_count)
 
 
-# In[7]:
+# In[8]:
 
 
 def get_tanslate_service():
@@ -88,7 +135,7 @@ def get_tanslate_service():
     return translate_service
 
 
-# In[8]:
+# In[9]:
 
 
 def translate_to_lang(texts, target_lang):
@@ -96,7 +143,7 @@ def translate_to_lang(texts, target_lang):
     return [i['translatedText'] for i in response['translations']][0]
 
 
-# In[9]:
+# In[10]:
 
 
 def extract_audio(in_video_path):
@@ -113,7 +160,7 @@ def extract_audio(in_video_path):
         return None
 
 
-# In[38]:
+# In[11]:
 
 
 def merge_media(vide_file, audio_file, res_file):
@@ -143,7 +190,7 @@ def merge_media(vide_file, audio_file, res_file):
     
 
 
-# In[11]:
+# In[12]:
 
 
 async def rewrite_text (rules, text):
@@ -173,7 +220,7 @@ async def rewrite_text (rules, text):
     return answer, token_used
 
 
-# In[12]:
+# In[13]:
 
 
 def rotate_video(in_file, angle_max):
@@ -208,7 +255,7 @@ def rotate_video(in_file, angle_max):
         return in_file
 
 
-# In[13]:
+# In[14]:
 
 
 def get_vid_params(vidfile):
@@ -220,7 +267,7 @@ def get_vid_params(vidfile):
     return width, height, fps
 
 
-# In[14]:
+# In[15]:
 
 
 def make_work_wm(wmfile, frame_height, frame_width, scale=0.2, of=10, loc='br'):
@@ -260,7 +307,7 @@ def make_work_wm(wmfile, frame_height, frame_width, scale=0.2, of=10, loc='br'):
 
 
 
-# In[15]:
+# In[16]:
 
 
 def add_wm_to_vid(vidfile, wmfile):
@@ -287,7 +334,7 @@ def add_wm_to_vid(vidfile, wmfile):
         return vidfile
 
 
-# In[16]:
+# In[17]:
 
 
 def make_some_noise4(in_file, noise):
@@ -309,7 +356,7 @@ def make_some_noise4(in_file, noise):
     return out_file
 
 
-# In[17]:
+# In[18]:
 
 
 def process_video(vidfile, vid_rules):
@@ -334,7 +381,7 @@ def process_video(vidfile, vid_rules):
     return video
 
 
-# In[18]:
+# In[19]:
 
 
 async def process_photo(photo_path, img_rules):
@@ -380,14 +427,14 @@ async def process_photo(photo_path, img_rules):
     return out_file
 
 
-# In[19]:
+# In[20]:
 
 
 async def process_album(update, rules):
     files = []
     new_text = ""
     wd = f"{update.messages[0].chat_id}_{update.messages[0].id}"
-    destination_chat = [_['to'] for _ in channels if _['from']==update.chat_id][0]
+    destination_chats = [_['to'] for _ in channels if _['from']==update.chat_id][0]
 
     for message in update.messages:
         if message.photo:
@@ -407,12 +454,34 @@ async def process_album(update, rules):
         if message.text.strip():
             add_text = await get_processed_text (message.text, rules['text'])
             new_text += '\n'+add_text
+    for chat in destination_chats:
+        sent = await send_msg(chat, text=new_text, files=files)
+        print ("Album sent:", sent)
+        shutil.rmtree(os.path.join(WORKDIR, wd), ignore_errors=False)
 
-    sent = await client.send_message (destination_chat, file = files, message = new_text.strip()[:1023])
-    print ("Album sent:", sent)
+
+# In[21]:
 
 
-# In[20]:
+def check_schedule(sched):
+    send = False
+    ddt = datetime.now()
+    if sched:
+        for scheline in sched:
+            if ddt.isoweekday() in scheline['days']:
+                for rr in scheline['times']:
+                    if datetime.strptime(rr[0],"%H:%M").time() < ddt.time() < datetime.strptime(rr[1],"%H:%M").time():
+                        send = True
+                        print (f"In shcedule: now {ddt} IS IN {rr}")
+                        break
+    else:
+        send = True
+    if not send:
+        print ("Out of schedule!")
+    return send
+
+
+# In[22]:
 
 
 async def album_callback(update: UpdateNewMessage):
@@ -420,12 +489,15 @@ async def album_callback(update: UpdateNewMessage):
     upd = update.messages
     if update.chat_id in [_['from'] for _ in channels]:
         rules = [_['rules'] for _ in channels if _['from']==update.chat_id][0]
-        fnc = process_album (update, rules)
-        processing_queue.append(fnc)
-        print (f"Added Album to processing (curr {len(processing_queue)})")
+        sched = [_.get('shcedule') for _ in channels if _['from']==update.chat_id][0]
+        send = check_schedule(sched)
+        if (send):
+            fnc = process_album (update, rules)
+            processing_queue.append(fnc)
+            print (f"Added Album to processing (curr {len(processing_queue)})")
 
 
-# In[21]:
+# In[23]:
 
 
 async def processor():
@@ -442,7 +514,7 @@ async def processor():
         await asyncio.sleep(1)
 
 
-# In[22]:
+# In[24]:
 
 
 # Define the callback function that will be called when a new message arrives
@@ -453,14 +525,18 @@ async def message_callback(update: UpdateNewMessage):
     if update.message.chat_id in [_['from'] for _ in channels]:
         if message.grouped_id:
             return
-        destination_chat = [_['to'] for _ in channels if _['from']==message.chat_id][0]
+        destination_chats = [_['to'] for _ in channels if _['from']==message.chat_id][0]
         rules = [_['rules'] for _ in channels if _['from']==message.chat_id][0]
-        fnc = forward_messages(destination_chat, message, rules)
-        processing_queue.append(fnc)
-        print (f"Added message to processing (curr {len(processing_queue)})")
+        sched = [_.get('shcedule') for _ in channels if _['from']==update.chat_id][0]
+        send = check_schedule(sched)
+        if (send):
+            for chat in destination_chats:
+                fnc = forward_messages(chat, message, rules)
+                processing_queue.append(fnc)
+                print (f"Added message to processing (curr {len(processing_queue)})")
 
 
-# In[23]:
+# In[25]:
 
 
 async def forward_messages(destination_chat, message, rules):
@@ -468,7 +544,7 @@ async def forward_messages(destination_chat, message, rules):
     if (message.text.strip()):
         new_text = await get_processed_text (message.text, rules['text'])
         if "Got error from OpenAI" in new_text:
-            await client.send_message(ADMIN_ID, new_text)
+            sent = await send_msg(ADMIN_ID, text=new_text)
             new_text = message.text.strip()
     else:
         print (f"text will be blank")
@@ -490,23 +566,13 @@ async def forward_messages(destination_chat, message, rules):
         fw_file = process_video(vidfile, rules['video'])
         fw_files.append(fw_file)
         
-    if fw_files:
-        if len(new_text)<=1023:
-            print (f"Sending single message with file and text:\n{new_text}")
-            sent_msg = await client.send_message(destination_chat, file = fw_files, message=new_text)
-        else:
-            print (f"Sending message with file and then with text")
-            sent_msg = await client.send_file(destination_chat, file = fw_files)
-            sent_msg2 = await client.send_message(destination_chat, message=new_text[:4095])
-    else:
-        if len (new_text)>0:
-            print (f"Sending only text")
-            sent_msg = await client.send_message(destination_chat, message=new_text[:4095])        
-
+    sent_msg = await send_msg(destination_chat, files = fw_files, text=new_text)
+        
     print (f"Message sent to {destination_chat} msg:\n{sent_msg}")
+    shutil.rmtree(os.path.join(WORKDIR, wd), ignore_errors=False)
 
 
-# In[24]:
+# In[26]:
 
 
 async def get_processed_text(text, rules):
@@ -538,7 +604,13 @@ async def get_processed_text(text, rules):
     
 
 
-# In[25]:
+# In[ ]:
+
+
+
+
+
+# In[27]:
 
 
 def text_to_chunks(text):
@@ -563,7 +635,7 @@ def text_to_chunks(text):
     return text_list
 
 
-# In[26]:
+# In[28]:
 
 
 async def main():
@@ -612,7 +684,7 @@ async def main():
 
 
 
-# In[27]:
+# In[29]:
 
 
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"]="./ai-with-radix-09328f41ef89.json"
@@ -627,7 +699,7 @@ global processing_queue
 processing_queue = []
 
 
-# In[28]:
+# In[30]:
 
 
 openai.api_key = openai_key
@@ -641,4 +713,6 @@ async def runme (workers):
 if __name__ == '__main__':
     asyncio.run(runme(workers))
 # In[ ]:
+
+
 

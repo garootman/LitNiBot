@@ -6,7 +6,7 @@ PHONE = "79959059938"
 
 
 # OpenAI
-openai_key="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"
+openai_key="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"
 
 
 
