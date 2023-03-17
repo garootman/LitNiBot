@@ -7,7 +7,7 @@
         ],
         "rules": {
             "text": {
-                "prompt": "",
+                "prompt": "Rewrite this text, impersonating Snoop Dogg",
                 "translate": "ru"
             },
             "image": {

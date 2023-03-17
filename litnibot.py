@@ -34,16 +34,16 @@ import tiktoken
 # In[2]:
 
 
-from bot_config import *
-MAX_RETRYS = 30
-OPENAI_RETRY_TIMEOUT = 10
-CLEANUP = True
+from datetime import datetime
 
 
 # In[3]:
 
 
-print ("libs imported!")
+from bot_config import *
+MAX_RETRYS = 30
+OPENAI_RETRY_TIMEOUT = 10
+CLEANUP = True
 
 
 # In[4]:
@@ -69,6 +69,29 @@ if (CLEANUP):
 # In[6]:
 
 
+import json
+
+
+# In[7]:
+
+
+def log(txt):
+    tt = str(datetime.now().replace(microsecond=0))
+    writt = f"{tt} | {txt}"
+    print (writt)
+    with open ("log.txt", 'a', encoding='utf-8') as f:
+        f.write(f"\n{writt}")
+
+
+# In[8]:
+
+
+log ("===================  Libs Imported!  ==============")
+
+
+# In[9]:
+
+
 def read_channels():
     global channels
     with open (f"channels.json", 'r', encoding='utf-8') as f:
@@ -78,7 +101,7 @@ def read_channels():
 #    json.dump(channels,f, ensure_ascii=False, indent=4)
 
 
-# In[7]:
+# In[10]:
 
 
 async def get_emotion_response(text):
@@ -87,7 +110,7 @@ async def get_emotion_response(text):
     return emolist
 
 
-# In[8]:
+# In[11]:
 
 
 async def send_poll (chat, question='', answer_list=[], poll=None, thread=None):
@@ -99,11 +122,11 @@ async def send_poll (chat, question='', answer_list=[], poll=None, thread=None):
         sent = await client(functions.messages.SendMediaRequest(peer=chat, message='poll message', media=poll, reply_to_msg_id=thread))
         return sent.updates[0]
     except Exception as e:
-        print (f"Could NOT send Poll to {chat} (тред {thread}) ({question}): {str(e)}")
+        log (f"Could NOT send Poll to {chat} (тред {thread}) ({question}): {str(e)}")
         return None
 
 
-# In[9]:
+# In[12]:
 
 
 async def send_msg(chat, text="", files=None, poll=None,reply=None, comment=None, thread=None):
@@ -155,7 +178,7 @@ async def send_msg(chat, text="", files=None, poll=None,reply=None, comment=None
                 break
                     
             except Exception as e:
-                print (f"Error sending message to {str(chat)}: {str(e)}")
+                log (f"Error sending message to {str(chat)}: {str(e)}")
                 await asyncio.sleep(5)
     
     if not texts_to_send and files and not sent:
@@ -168,13 +191,13 @@ async def send_msg(chat, text="", files=None, poll=None,reply=None, comment=None
 
             
     if (sent):
-        print (f"Finished sending to {chat}: {txt[:20]}...")
+        log (f"Finished sending to {chat}: {txt[:20]}...")
     else:
-        print (f"NOT sent!")
+        log (f"NOT sent!")
     return sent
 
 
-# In[10]:
+# In[13]:
 
 
 async def verify_dest_chats(chatlist):
@@ -186,26 +209,26 @@ async def verify_dest_chats(chatlist):
                 ent = await client.get_entity(chat)
                 verif_chatlist.append((ent.id, None))
             except Exception as e:
-                print (f"Chat {chat} not found...")
+                log (f"Chat {chat} not found...")
             
         elif type(chat)==str:
             if chat in dg_groups.keys():
                 appendable = [(i, None) for i in dg_groups[chat]]
                 verif_chatlist.extend(appendable)
-                print(f"Will send message to {chat}: total {len(dg_groups[chat])}!!!")
+                log(f"Will send message to {chat}: total {len(dg_groups[chat])}!!!")
             elif ':' in chat:
                 chat, thread = chat.split(':')
                 chat = int(chat)
                 thread = int(thread)
                 verif_chatlist.append((chat, thread))
             else:
-                print (f"Unknown chat: {chat}")
+                log (f"Unknown chat: {chat}")
 
     
     return verif_chatlist
 
 
-# In[11]:
+# In[14]:
 
 
 def get_chat_type(chat):    
@@ -218,26 +241,26 @@ def get_chat_type(chat):
             return 'personal'
 
     elif isinstance(chat, types.ChannelForbidden):
-        print (f"This is a message in a Forbidden Channel!")
+        log (f"This is a message in a Forbidden Channel!")
         return 'channel'
     elif isinstance(chat, types.Channel):
         if chat.megagroup:
-#            print (f"This is a message in Chat-megagroup!")
+#            log (f"This is a message in Chat-megagroup!")
             return 'group'
         if chat.gigagroup:
-#            print (f"This is a message in Chat-gigagroup!")
+#            log (f"This is a message in Chat-gigagroup!")
             return 'group'
         return 'channel'
         
     elif isinstance(chat, types.Chat):
-#        print (f"This is a message in Chat!")
+#        log (f"This is a message in Chat!")
         return 'group'
     else:
-        print(type(chat))
+        log(f"UNKNOWN chat type: {type(chat)}")
         return 'unknown!'
 
 
-# In[12]:
+# In[15]:
 
 
 async def all_dialog_groups():
@@ -250,11 +273,11 @@ async def all_dialog_groups():
         elif t=="channel": cg['all_channels'].append(dg.id)
         elif t=="group": cg['all_groups'].append(dg.id)
         else:
-            print("Non-working chat type: ",dg.id, t)
+            log(f"Non-working chat type: {dg.id,} {t}")
     return cg
 
 
-# In[13]:
+# In[16]:
 
 
 def non_english_symbols_regex(string: str):
@@ -262,7 +285,7 @@ def non_english_symbols_regex(string: str):
     return pattern.findall(string)
 
 
-# In[14]:
+# In[17]:
 
 
 def estimate_token_count(string: str, encoding_name = "gpt2") -> int:
@@ -271,7 +294,7 @@ def estimate_token_count(string: str, encoding_name = "gpt2") -> int:
     return num_tokens
 
 
-# In[15]:
+# In[18]:
 
 
 def get_tanslate_service():
@@ -290,7 +313,7 @@ def get_tanslate_service():
     return translate_service
 
 
-# In[16]:
+# In[19]:
 
 
 def translate_to_lang(texts, target_lang):
@@ -298,7 +321,7 @@ def translate_to_lang(texts, target_lang):
     return [i['translatedText'] for i in response['translations']][0]
 
 
-# In[17]:
+# In[20]:
 
 
 def extract_audio(in_video_path):
@@ -308,19 +331,19 @@ def extract_audio(in_video_path):
         aud = AudioSegment.from_file(in_video_path, "mp4")
         aud.export(aud_path, format="mp3")
         rate = aud.frame_rate
-        print (f"Extracted audio to: {aud_path}")
+        log (f"Extracted audio to: {aud_path}")
         return aud_path, rate
     except Exception as e:
         aud_file = None
-        print (f"Could NOT extract audio: {str(e)}")
+        log (f"Could NOT extract audio: {str(e)}")
         return None, 0
 
 
-# In[18]:
+# In[21]:
 
 
 def merge_media(vide_file, audio_file, res_file, fps=25, ar=0):
-    print (f"Merging video: {vide_file} + audio: {audio_file}")
+    log (f"Merging video: {vide_file} + audio: {audio_file}")
     if (audio_file):
         aud_cmd = "-i", audio_file
     else:
@@ -346,16 +369,16 @@ def merge_media(vide_file, audio_file, res_file, fps=25, ar=0):
     ]
     try:
         subprocess.run(command, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        print (f"Merged to {res_file}")
+        log (f"Merged to {res_file}")
         return res_file
     except subprocess.CalledProcessError as error:
-        print("Error: FFmpeg command failed with return code", error.returncode)
-        print("Error output:", error.stderr.decode(), file=sys.stderr)
+        log(f"Error: FFmpeg command failed with return code {error.returncode}")
+        log(f"Error output: {error.stderr.decode()}: {str(file=sys.stderr)}")
         return vide_file
     
 
 
-# In[19]:
+# In[22]:
 
 
 async def process_with_openai2 (rules, text):
@@ -386,7 +409,7 @@ async def process_with_openai2 (rules, text):
 
 
 
-# In[20]:
+# In[23]:
 
 
 def rotate_video(in_file, angle_max):
@@ -401,7 +424,7 @@ def rotate_video(in_file, angle_max):
         angle = round((1+ random.random()) * angle_max /2, 5) * random.choice([-1,1])
 #        scale = np.sqrt(aspect_ratio * np.cos(np.radians(angle)) ** 2 + np.sin(np.radians(angle)) ** 2) / np.sqrt(aspect_ratio)
         scale = 1.01
-        print (f"Rotating video {angle} degrees, scale {scale}")
+        log (f"Rotating video {angle} degrees, scale {scale}")
         fourcc = cv2.VideoWriter_fourcc(*'mp4v')  # or other codecs, e.g. 'mp4v'
         out = cv2.VideoWriter(out_file, fourcc, int(fps), (width, height))
         while True:
@@ -414,14 +437,14 @@ def rotate_video(in_file, angle_max):
 
         cap.release()
         out.release()
-        print ("Rotation Done!")
+        log ("Rotation Done!")
         return out_file
     except Exception as e:
-        print (f"Could NOT rotate video: {str(e)}")
+        log (f"Could NOT rotate video: {str(e)}")
         return in_file
 
 
-# In[21]:
+# In[24]:
 
 
 def get_vid_params(vidfile):
@@ -433,18 +456,12 @@ def get_vid_params(vidfile):
     return width, height, fps
 
 
-# In[ ]:
-
-
-
-
-
-# In[22]:
+# In[25]:
 
 
 def make_work_wm(wmfile, frame_height, frame_width, scale=0.2, of=10, loc='br', wd='watermarks'):
     try:
-        print (f"Making work_wm from {wmfile} with W {frame_width}, H {frame_height}")
+        log (f"Making work_wm from {wmfile} with W {frame_width}, H {frame_height}")
         watermark = cv2.imread(wmfile, cv2.IMREAD_UNCHANGED)
         wm_height, wm_width, _ = watermark.shape
         aspect_ratio = wm_width / wm_height
@@ -470,15 +487,15 @@ def make_work_wm(wmfile, frame_height, frame_width, scale=0.2, of=10, loc='br', 
         result[y_offset:y_offset+new_height, x_offset:x_offset+new_width] = watermark
         resfile = os.path.join(WORKDIR, wd, f'wm_{str(random.random())[2:6]}.png')
         cv2.imwrite(resfile, result)
-        print (f"Made watermark: {resfile}")
+        log (f"Made watermark: {resfile}")
         return resfile
     except Exception as e:
-        print (f"Could NOT make watermark, using as is: {str(e)}")
+        log (f"Could NOT make watermark, using as is: {str(e)}")
         return wmfile
 
 
 
-# In[23]:
+# In[26]:
 
 
 def flatten_video_fps(vidfile):
@@ -490,7 +507,7 @@ def flatten_video_fps(vidfile):
     fps = str(int(fps))
     return vidfile, fps
     
-    print (f"Flattening video FPS: {vidfile}, will write to {retfile}")
+    log (f"Flattening video FPS: {vidfile}, will write to {retfile}")
     command = [
         "ffmpeg",
         "-i", vidfile,
@@ -500,15 +517,15 @@ def flatten_video_fps(vidfile):
     ]
     try:
         subprocess.run(command, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        print (f"Flattened video FPS: {vidfile} to {retfile}")
+        log (f"Flattened video FPS: {vidfile} to {retfile}")
         return retfile, fps
     except subprocess.CalledProcessError as error:
-        print("Error: FFmpeg command failed with return code", error.returncode)
-        print("Error output:", error.stderr.decode(), file=sys.stderr)
+        log(f"Error: FFmpeg command failed with return code {error.returncode}")
+        log(f"Error output: {error.stderr.decode()}, {str(file=sys.stderr)}")
         return vidfile, fps
 
 
-# In[24]:
+# In[29]:
 
 
 def add_wm_to_vid(vidfile, wmfile, fps=0):
@@ -520,7 +537,7 @@ def add_wm_to_vid(vidfile, wmfile, fps=0):
         fps = ""
         
     
-    print (f"Adding WM to video: {wmfile} to {vidfile}, will write to {retfile}")
+    log (f"Adding WM to video: {wmfile} to {vidfile}, will write to {retfile}")
     command = [
         "ffmpeg",
         "-i", vidfile,
@@ -533,21 +550,21 @@ def add_wm_to_vid(vidfile, wmfile, fps=0):
     ]
     try:
         subprocess.run(command, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        print (f"Added WM to video: {vidfile} to {wmfile}")
+        log (f"Added WM to video: {vidfile} to {wmfile}")
         return retfile
     except subprocess.CalledProcessError as error:
-        print("Error: FFmpeg command failed with return code", error.returncode)
-        print("Error output:", error.stderr.decode(), file=sys.stderr)
+        log(f"Error: FFmpeg command failed with return code {error.returncode}")
+        log(f"Error output: {error.stderr.decode()}, {str(file=sys.stderr)}")
         return vidfile
 
 
-# In[25]:
+# In[30]:
 
 
 def make_some_noise4(in_file, noise, hzrate):
     sep = '\\' if len(in_file.split('\\')) > len(in_file.split('/')) else '/'
     out_file = os.path.join(*in_file.split(sep)[:-1], 'noise_'+in_file.split(sep)[-1])    
-    print (f"Making noise with {noise} db")
+    log (f"Making noise with {noise} db")
     sound = AudioSegment.from_file(in_file, format="mp3")
     noise_sound = AudioSegment.from_file(NOISE_FILE, format="wav")
 
@@ -564,23 +581,23 @@ def make_some_noise4(in_file, noise, hzrate):
     return out_file
 
 
-# In[26]:
+# In[31]:
 
 
 async def process_video(msg_vid, vid_rules, wd):
     if min(([not i for i in vid_rules.values()])):
-        print (f"NO changes to video to be done, returning as is.")
+        log (f"NO changes to video to be done, returning as is.")
         return msg_vid
     
     try:
         vidfile = os.path.join(WORKDIR, wd, f'invideo_{str(random.random())[2:5]}.mp4')
-        print (f"Downloading video to {vidfile}!")
+        log (f"Downloading video to {vidfile}!")
         await client.download_media(msg_vid, vidfile)
         w, h, fps = get_vid_params(vidfile)
         sep = '\\' if len(vidfile.split('\\')) > len(vidfile.split('/')) else '/'
         out_file = os.path.join(*vidfile.split(sep)[:-1], 'out_'+vidfile.split(sep)[-1])
     except Exception as e:
-        print (f"Could NOT get initial file: {str(e)}")
+        log (f"Could NOT get initial file: {str(e)}")
         return msg_vid
     
     aud_file, hzrate = extract_audio(vidfile)
@@ -592,7 +609,7 @@ async def process_video(msg_vid, vid_rules, wd):
         wmloc = vid_rules.get('wm_loc')
         if not wmloc or wmloc not in ['br','bl','tr','tl', 'c']:
             wmloc = 'br'
-            print (f"wm_loc incorrect, using default: bottom-right ('br')")
+            log (f"wm_loc incorrect ({wmloc}), using default: bottom-right ('br')")
         wmfile = make_work_wm (vid_rules['watermark'], h, w, scale=0.2, of=10, loc=wmloc, wd=wd)
         vidfile = add_wm_to_vid(vidfile, wmfile)
         
@@ -603,13 +620,13 @@ async def process_video(msg_vid, vid_rules, wd):
     return video
 
 
-# In[27]:
+# In[32]:
 
 
 async def process_photo(msg_photo, img_rules, wd):
     
     if min(([not i for i in img_rules.values()])):
-        print (f"NO changes to image to be done, returning as is.")
+        log (f"NO changes to image to be done, returning as is.")
         return msg_photo
 
     
@@ -617,22 +634,22 @@ async def process_photo(msg_photo, img_rules, wd):
     try:
         await client.download_media(msg_photo, photo_path)
     except Exception as e:
-        print (f"Could NOT download image, skipping it...")
+        log (f"Could NOT download image, skipping it...")
         return msg_photo
 
     
-    print ('processing image, rules: ', img_rules)
+    log (f'processing image, rules: {img_rules}')
     sep = '\\' if len(photo_path.split('\\')) > len(photo_path.split('/')) else '/'
     out_file = os.path.join(*photo_path.split(sep)[:-1], 'out_'+photo_path.split(sep)[-1])
     img = Image.open(photo_path).convert("RGBA")
     width, height = img.size
 
     if img_rules['rotate']:
-        print (f"Rotating by rnd {img_rules['rotate']} degrees")
+        log (f"Rotating by rnd {img_rules['rotate']} degrees")
         img = img.rotate(img_rules['rotate'] * random.random())
         
     if (img_rules['crop'] ):
-        print (f"cropping by rnd {img_rules['crop']}%")
+        log (f"cropping by rnd {img_rules['crop']}%")
 
         left = round(width * (random.random() * img_rules['crop'] / 100))
         right = round(width * (1-random.random() * img_rules['crop'] / 100))
@@ -648,7 +665,7 @@ async def process_photo(msg_photo, img_rules, wd):
             wmloc = 'br'
         wmfile = make_work_wm (img_rules['watermark'], height, width, scale=0.2, of=10, loc=wmloc, wd=wd)
         
-        print (f"Adding watermark: {img_rules['watermark']}")        
+        log (f"Adding watermark: {img_rules['watermark']}")        
         watermark = Image.open(wmfile)
         w_width, w_height = watermark.size
 #        x = img.width - w_width - 10
@@ -663,13 +680,13 @@ async def process_photo(msg_photo, img_rules, wd):
     return out_file
 
 
-# In[28]:
+# In[33]:
 
 
 async def check_if_message_still_exists(msg, rules):
     fd = rules.get('fw_deleted') 
     if fd == 'YES':
-        print ("Don't care if deleted - fw_deleted True")
+        log ("Don't care if deleted - fw_deleted True")
         return True
     
     exists = False
@@ -681,7 +698,7 @@ async def check_if_message_still_exists(msg, rules):
         pass    
 
     if not exists and fd == 'ONLY_DELETED':
-        print ("DELETED ONLY - will send it!")
+        log ("DELETED ONLY - will send it!")
         return True
         
     if exists and fd != 'ONLY_DELETED':
@@ -690,7 +707,7 @@ async def check_if_message_still_exists(msg, rules):
     return False
 
 
-# In[29]:
+# In[34]:
 
 
 async def process_album(update, rules):
@@ -709,47 +726,48 @@ async def process_album(update, rules):
     while busy or msg_exists is None:
         msg_exists = await check_if_message_still_exists(update.messages[0], rules)
         if not msg_exists:
-            print (f"Album in {update.messages[0].chat_id} # {update.messages[0].id} was deleted, will NOT continue")
+            log (f"Album in {update.messages[0].chat_id} # {update.messages[0].id} was deleted, will NOT continue")
             return
         await asyncio.sleep(3)
     busy = True
 
     
+    try:
+        destination_chats = [_['to'] for _ in channels if _['from']==update.chat_id][0]
+        destination_chats = await verify_dest_chats(destination_chats)
 
-    destination_chats = [_['to'] for _ in channels if _['from']==update.chat_id][0]
-    destination_chats = await verify_dest_chats(destination_chats)
-
-    for message in update.messages:
-        if message.photo:
-            new_photo = await process_photo(message.photo, rules['image'], wd)
-            files.append(new_photo)
-        elif message.video:
-            fw_file = await process_video(message.video, rules['video'], wd)
-            files.append(fw_file)
-        else:
-            print (f"Some other message type: {message.to_dict()}")
-
-        if message.text.strip():
-            add_text = await get_processed_text (message.text, rules['text'])
-            new_text += '\n'+add_text
-                
-    for (chat, thread) in destination_chats:
-        sent = await send_msg(chat, text=new_text, files=files, thread = thread)
-#        print ("Album sent:", sent)
-        if rules.get("emote") and sent:
-            emolist = await get_emotion_response(add_text)
-            if (emolist):
-                await react_to_message(chat, sent.id, emolist, thread=thread)
+        for message in update.messages:
+            if message.photo:
+                new_photo = await process_photo(message.photo, rules['image'], wd)
+                files.append(new_photo)
+            elif message.video:
+                fw_file = await process_video(message.video, rules['video'], wd)
+                files.append(fw_file)
             else:
-                print (f"Got NO emotions to use")
+                log (f"Some other message type: {message.to_dict()}")
 
+            if message.text.strip():
+                add_text = await get_processed_text (message.text, rules['text'])
+                new_text += '\n'+add_text
+
+        for (chat, thread) in destination_chats:
+            sent = await send_msg(chat, text=new_text, files=files, thread = thread)
+    #        log ("Album sent: {sent}")
+            if rules.get("emote") and sent:
+                emolist = await get_emotion_response(add_text)
+                if (emolist):
+                    await react_to_message(chat, sent.id, emolist, thread=thread)
+                else:
+                    log (f"Got NO emotions to use")
+    except Exception as e:
+        log (F"Could NOT process album: {str(e)}")
 
     busy = False     
     if (CLEANUP):
         shutil.rmtree(os.path.join(WORKDIR, wd), ignore_errors=False)
 
 
-# In[30]:
+# In[35]:
 
 
 def sched_vs_time(sched, ddt):
@@ -761,7 +779,7 @@ def sched_vs_time(sched, ddt):
     return False
 
 
-# In[31]:
+# In[36]:
 
 
 def check_schedule(sched):
@@ -774,7 +792,7 @@ def check_schedule(sched):
         to_process = True
         
     if not to_process:
-        print ("Out of schedule!")
+        log ("Out of schedule!")
         for i in range (7*24*60):
             next_time = ddt+timedelta(minutes=i)
             proc_later = sched_vs_time(sched, next_time)
@@ -785,7 +803,7 @@ def check_schedule(sched):
     return to_process, proc_time.replace(microsecond=0)
 
 
-# In[32]:
+# In[37]:
 
 
 async def album_callback(update: UpdateNewMessage):
@@ -803,16 +821,16 @@ async def album_callback(update: UpdateNewMessage):
             send_now, send_time = check_schedule(send_sched)
             fnc = process_album (update, rules)
             processing_queue.append((fnc, send_time))
-            print (f"Added Album to processing (curr {len(processing_queue)}) to time {send_time}")
+            log (f"Added Album to processing (curr {len(processing_queue)}) to time {send_time}")
         else:
-            print (F"Skipping Album in {update.message.chat_id} due to NON-receive shcedule!")
+            log (F"Skipping Album in {update.chat_id} due to NON-receive shcedule!")
 
 
-# In[33]:
+# In[38]:
 
 
 async def processor():
-    print (f"Processor started!")
+    log (f"Processor started!")
     global processing_queue
     while True:
         returnables = []
@@ -820,9 +838,9 @@ async def processor():
         for proc_params in q:
             proc, exec_time = proc_params
             if (exec_time <= datetime.now()):
-                print (f"\n=========== Started processing! ============")
+                log (f"=========== Started processing! ============")
                 await proc
-                print (f"=========== FINISHED processing! ============\n")
+                log (f"=========== FINISHED processing! ============")
                 await asyncio.sleep(1)
 
             else:
@@ -830,15 +848,15 @@ async def processor():
         for proc in q:
             processing_queue.remove(proc)
 #        for pp in returnables:
-#            print(f"Returned back to queue: {pp} ")
+#            log(f"Returned back to queue: {pp} ")
         if (returnables):
             processing_queue.extend(returnables)
-#            print(f"Returned back to queue: {returnables} ")
+#            log(f"Returned back to queue: {returnables} ")
 
         await asyncio.sleep(1)
 
 
-# In[34]:
+# In[39]:
 
 
 # Define the callback function that will be called when a new message arrives
@@ -849,7 +867,7 @@ async def message_callback(update: UpdateNewMessage):
     
     channels = read_channels()
     message = update.message
-#    print (message.to_dict())
+#    log (message.to_dict())
     # Forward the message to another chat
     if update.message.chat_id in [_['from'] for _ in channels]:
         if message.grouped_id:
@@ -865,13 +883,13 @@ async def message_callback(update: UpdateNewMessage):
                 send_sched = [_.get('send_shcedule') for _ in channels if _['from']==update.chat_id][0]
                 send_now, send_time = check_schedule(send_sched)
                 fnc = forward_messages(chat, message, rules, thread)
-                print (f"Added message to processing (curr {len(processing_queue)}) to time {send_time}")
+                log (f"Added message to processing (curr {len(processing_queue)}) to time {send_time}")
                 processing_queue.append((fnc, send_time))
         else:
-            print (F"Skipping message in {update.message.chat_id} due to NON-receive shcedule!")
+            log (F"Skipping message in {update.message.chat_id} due to NON-receive shcedule!")
 
 
-# In[35]:
+# In[40]:
 
 
 async def forward_messages(destination_chat, message, rules, thread=None):  
@@ -884,62 +902,65 @@ async def forward_messages(destination_chat, message, rules, thread=None):
     while busy or msg_exists is None:
         msg_exists = await check_if_message_still_exists(message, rules)
         if not msg_exists:
-            print (f"Message in {message.chat_id} # {message.id} was deleted, will NOT continue")
+            log (f"Message in {message.chat_id} # {message.id} was deleted, will NOT continue")
             return
         await asyncio.sleep(3)
     busy = True
     
-    if (message.text.strip()):
-        new_text = await get_processed_text (message.text, rules['text'])
-        if "Got error from OpenAI" in new_text:
-            sent = await send_msg(ADMIN_ID, text=new_text)
-            new_text = message.text.strip()
-    else:
-        print (f"text will be blank")
-        new_text = ""
     
-    fw_files = []
-    wd = f"{message.chat_id}_{message.id}"
-    if wd not in os.listdir(WORKDIR):
-        os.mkdir(os.path.join(WORKDIR, wd))
-    
-    if (message.photo):
-        fw_file = await process_photo(message.photo, rules['image'], wd)
-        fw_files.append(fw_file)
-    elif (message.video):
-        fw_file = await process_video(message.video, rules['video'], wd)
-        fw_files.append(fw_file)
-    elif message.poll and rules['polls']:
-        poll = message.poll
-        
-    sent_msg = await send_msg(destination_chat, files = fw_files, text=new_text, poll=poll,thread=thread)
-    
-    if rules.get("emote") and sent_msg and not poll:
-        emolist = await get_emotion_response(new_text)
-        if (emolist):
-            await react_to_message(destination_chat, sent_msg.id, emolist, thread=thread)
+    try:
+        if (message.text.strip()):
+            new_text = await get_processed_text (message.text, rules['text'])
+            if "Got error from OpenAI" in new_text:
+                sent = await send_msg(ADMIN_ID, text=new_text)
+                new_text = message.text.strip()
         else:
-            print (f"Got NO emotions to use")
-        
+            log (f"text will be blank")
+            new_text = ""
+
+        fw_files = []
+        wd = f"{message.chat_id}_{message.id}"
+        if wd not in os.listdir(WORKDIR):
+            os.mkdir(os.path.join(WORKDIR, wd))
+
+        if (message.photo):
+            fw_file = await process_photo(message.photo, rules['image'], wd)
+            fw_files.append(fw_file)
+        elif (message.video):
+            fw_file = await process_video(message.video, rules['video'], wd)
+            fw_files.append(fw_file)
+        elif message.poll and rules['polls']:
+            poll = message.poll
+
+        sent_msg = await send_msg(destination_chat, files = fw_files, text=new_text, poll=poll,thread=thread)
+
+        if rules.get("emote") and sent_msg and not poll:
+            emolist = await get_emotion_response(new_text)
+            if (emolist):
+                await react_to_message(destination_chat, sent_msg.id, emolist, thread=thread)
+            else:
+                log (f"Got NO emotions to use")
+    except Exception as e:
+        log (f"Could NOT process message: {str(e)}")
     busy = False
     if (CLEANUP):
         shutil.rmtree(os.path.join(WORKDIR, wd), ignore_errors=False)
 
 
-# In[36]:
+# In[41]:
 
 
 async def get_processed_text(text, rules):
     if rules =="":
-        print (f"Forwarding text as is: {text[:20]}")
+        log (f"Forwarding text as is: {text[:20]}")
         return text
     if text =="":
-        print (f"NO text...")
+        log (f"NO text...")
         return ""
         
     ret_text = text
     if rules['prompt']:
-        print (f"Rewriting text with TXT-rule: '{rules['prompt']}' :{text[:20]}...")    
+        log (f"Rewriting text with TXT-rule: '{rules['prompt']}' :{text[:20]}...")    
         text_list = text_to_chunks(text)
 
         ret_text = ""
@@ -948,18 +969,18 @@ async def get_processed_text(text, rules):
             new_text, tokens = await process_with_openai2(text, rules['prompt'])
             ret_text+= f"\n{new_text}"
             total_tokens += tokens
-        print (f"Rewrote using {total_tokens} tokens to: {ret_text[:20]}...")
+        log (f"Rewrote using {total_tokens} tokens to: {ret_text[:20]}...")
         
     if rules['translate']:
         ret_text = translate_to_lang(ret_text,rules['translate'])
-        print (f"Translated to {rules['translate']}: {ret_text[:20]}...")
+        log (f"Translated to {rules['translate']}: {ret_text[:20]}...")
 
     
     return ret_text
     
 
 
-# In[37]:
+# In[42]:
 
 
 def text_to_chunks(text):
@@ -984,17 +1005,17 @@ def text_to_chunks(text):
     return text_list
 
 
-# In[38]:
+# In[43]:
 
 
 async def main():
     global me
 
-    print ("startded main")
+    log ("Startded main!")
     #await client.start(PHONE)
     try:
         await client.connect()
-        print ("Client connected")
+        log ("Client connected")
         if not await client.is_user_authorized():
             await client.send_code_request(PHONE)
             code = input('Enter the code: ')
@@ -1020,13 +1041,13 @@ async def main():
     client.add_event_handler(message_callback, events.NewMessage)
     
 
-    print (f"Bot up and running")
+    log (f"Bot up and running")
     # Start polling
     await client.run_until_disconnected()
     
 
 
-# In[39]:
+# In[44]:
 
 
 async def react_to_message(peer, msg_id, emolist, thread=None):
@@ -1041,12 +1062,12 @@ async def react_to_message(peer, msg_id, emolist, thread=None):
                     add_to_recent=True, big=True,
 #                        reply_to_msg_id = thread,
                     reaction=[(types.ReactionEmoji(emoticon=emote)) for emote in emolist]))
-        print (f"Emoted post with {emolist}")
+        log (f"Emoted post with {emolist}")
     except Exception as e:
-        print (f"Could NOT react in {peer}: {str(e)}")
+        log (f"Could NOT react in {peer}: {str(e)}")
 
 
-# In[40]:
+# In[45]:
 
 
 if WORKDIR not in os.listdir():
@@ -1060,7 +1081,7 @@ busy = False
 me = None
 
 
-# In[41]:
+# In[46]:
 
 
 openai.api_key = openai_key
@@ -1075,3 +1096,4 @@ async def runme (workers):
 if __name__ == '__main__':
     asyncio.run(runme(workers))
 # In[ ]:
+
