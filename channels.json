@@ -1,0 +1,132 @@
+[
+    {
+        "from": -1001716081508,
+        "to": [
+            5566311336, 
+            "1150050047:593"
+        ],
+        "rules": {
+            "text": {
+                "prompt": "",
+                "translate": "ru"
+            },
+            "image": {
+                "crop": 0.5,
+                "rotate": 0.5,
+                "watermark": "watermark.png",
+                "wm_loc": "c"
+            },
+            "video": {
+                "watermark": "watermark.png",
+                "angle": 1.5,
+                "noise": -5,
+                "wm_loc": "c"
+            },
+            "fw_deleted": "NO",
+            "emote": true,
+            "polls":true
+        }
+    },
+    {
+        "from": 62408647,
+        "to": [
+            "1150050047:593"
+        ],
+        "rules": {
+            "text": {
+                "prompt": "Rewrite this text, impersonating Snoop Dogg:",
+                "translate": "ru"
+            },
+            "image": {
+                "crop": 1.0,
+                "rotate": 0.4,
+                "watermark": "watermark.png",
+                "wm_loc": "c"
+            },
+            "video": {
+                "watermark": "watermark.png",
+                "angle": 0.5,
+                "noise": -10,
+                "wm_loc": "tl"
+            },
+            "emote": true,
+            "polls": true
+        }
+    },
+    {
+        "from": 62408647,
+        "to": [
+            "1150050047:593",
+            6162084955,
+            5566311336,
+            -1001150050047,
+            -1001955124217
+        ],
+        "multipost_timeout": 5,
+        "send_shcedule": [
+            {
+                "days": [
+                    1,
+                    2,
+                    3,
+                    4,
+                    5
+                ],
+                "times": [
+                    [
+                        "02:30",
+                        "02:40"
+                    ],
+                    [
+                        "15:23",
+                        "22:40"
+                    ],
+                    [
+                        "04:03",
+                        "04:40"
+                    ]
+                ]
+            },
+            {
+                "days": [
+                    6
+                ],
+                "times": [
+                    [
+                        "16:30",
+                        "23:59"
+                    ]
+                ]
+            },
+            {
+                "days": [
+                    7
+                ],
+                "times": [
+                    [
+                        "02:00",
+                        "02:40"
+                    ]
+                ]
+            }
+        ],
+        "rules": {
+            "text": {
+                "prompt": "Make a joke out this content:",
+                "translate": "fr"
+            },
+            "image": {
+                "crop": 1.0,
+                "rotate": 0.4,
+                "watermark": "watermark.png",
+                "wm_loc": "tl"
+            },
+            "video": {
+                "watermark": "watermark.png",
+                "angle": 0.5,
+                "noise": -10,
+                "wm_loc": "c"
+            }
+        }
+    }
+]
