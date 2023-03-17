@@ -65,10 +65,7 @@ if (CLEANUP):
     except:
         pass
 
-chat = -1001150050047
-question = "Опрос такой-то"
-aswer_list = ['Ответ номер один', 'Ответ номер 2']
-thread=593
+
 # In[6]:
 
 
@@ -1078,5 +1075,3 @@ async def runme (workers):
 if __name__ == '__main__':
     asyncio.run(runme(workers))
 # In[ ]:
-
-
